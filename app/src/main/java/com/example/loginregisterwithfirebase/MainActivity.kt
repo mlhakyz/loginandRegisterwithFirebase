@@ -18,32 +18,46 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var auth: FirebaseAuth
 
-    lateinit var email: EditText
-    lateinit var password: EditText
+    lateinit var emailReg: EditText
+    lateinit var passwordReg: EditText
+    lateinit var emailLog: EditText
+    lateinit var passwordLog: EditText
     lateinit var tvLoggedIn: TextView
     lateinit var btnRegister: Button
+    lateinit var btnLogin: Button
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        email = findViewById(R.id.etEmailRegister)
-        password = findViewById(R.id.etPasswordRegister)
+        emailReg = findViewById(R.id.etEmailRegister)
+        passwordReg = findViewById(R.id.etPasswordRegister)
+        emailLog = findViewById(R.id.etEmailLogin)
+        passwordLog = findViewById(R.id.etPasswordLogin)
         tvLoggedIn = findViewById(R.id.tvLoggedIn)
         btnRegister = findViewById(R.id.btnRegister)
+        btnLogin = findViewById(R.id.btnLogin)
         auth = FirebaseAuth.getInstance()
-
+auth.signOut()
         btnRegister.setOnClickListener {
             registerUser()
         }
+        btnLogin.setOnClickListener {
+            loginUser()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        checkLoggedInState()
     }
 
     private fun registerUser(){
-        val emailReg =   email.text.toString()
-        val passwordReg =   password.text.toString()
+        val email =   emailReg.text.toString()
+        val password =   passwordReg.text.toString()
 
-        if(emailReg.isNotEmpty() && passwordReg.isNotEmpty()){
+        if(email.isNotEmpty() && password.isNotEmpty()){
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    auth.createUserWithEmailAndPassword(emailReg,passwordReg).await()
+                    auth.createUserWithEmailAndPassword(email,password).await()
                     withContext(Dispatchers.Main) {
                         checkLoggedInState()
                     }
@@ -64,6 +78,27 @@ class MainActivity : AppCompatActivity() {
         }else{
             tvLoggedIn.text = "You are Logged in"
         }
+
+    }
+    private fun loginUser(){
+        val emailLogin =   emailLog.text.toString()
+        val passwordLogin =   passwordLog.text.toString()
+
+        if(emailLogin.isNotEmpty() && passwordLogin.isNotEmpty()){
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    auth.signInWithEmailAndPassword(emailLogin,passwordLogin).await()
+                    withContext(Dispatchers.Main) {
+                        checkLoggedInState()
+                    }
+                }catch (e: Exception){
+                    withContext(Dispatchers.Main){
+                        Toast.makeText(this@MainActivity,e.message,Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+
 
     }
 }
